@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mind Map — Topic 28: Analytical Data Modeling</title>
+<style>
+  :root { --ink:#223; --card:#fff; }
+  * { box-sizing: border-box; }
+  html,body { margin:0; height:100%; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:#f4f6f9; color:var(--ink); overflow:hidden; }
+  #app { position:relative; width:100vw; height:100vh; }
+  svg { width:100%; height:100%; display:block; cursor:grab; }
+  svg.dragging { cursor:grabbing; }
+  .toolbar { position:absolute; top:14px; left:14px; display:flex; gap:8px; z-index:10; flex-wrap:wrap; }
+  .toolbar button { height:34px; padding:0 13px; border:1px solid #d7dbe2; border-radius:8px; background:#fff; cursor:pointer; font-size:13px; font-weight:700; color:#555; box-shadow:0 1px 2px rgba(0,0,0,.05); }
+  .toolbar button:hover { background:#f0f3f8; }
+  .toolbar select { height:34px; border:1px solid #d7dbe2; border-radius:8px; padding:0 8px; font-size:13px; font-weight:700; color:#555; background:#fff; cursor:pointer; }
+  .titlebar { position:absolute; top:14px; left:50%; transform:translateX(-50%); z-index:9; text-align:center; pointer-events:none; }
+  .titlebar h1 { margin:0; font-size:15px; letter-spacing:.2px; }
+  .titlebar p { margin:2px 0 0; font-size:11px; color:#7a8290; }
+  .hint { position:absolute; bottom:12px; left:50%; transform:translateX(-50%); z-index:9; font-size:11px; color:#8a919e; background:rgba(255,255,255,.85); padding:5px 12px; border-radius:20px; pointer-events:none; }
+  .tooltip { position:absolute; top:60px; left:14px; z-index:11; max-width:300px; background:#1f2733; color:#fff; font-size:12px; line-height:1.45; padding:10px 12px; border-radius:10px; display:none; box-shadow:0 6px 18px rgba(0,0,0,.2); }
+  .info-card { font-family:system-ui, sans-serif; background:#fff; border:1px solid #dfe4ec; border-radius:12px; padding:10px 12px; box-shadow:0 8px 22px rgba(20,30,50,.16); font-size:12px; line-height:1.4; color:#2a3140; }
+  .info-card .t { font-weight:800; font-size:12.5px; margin-bottom:6px; color:#1d2939; }
+  .info-card .lbl { font-weight:800; font-size:10px; letter-spacing:.4px; text-transform:uppercase; color:#7b8798; margin-top:6px; }
+  .info-card .ex { color:#3d4a5c; }
+  .arrow-hit { cursor:pointer; }
+  .arrow-hit:hover circle { stroke-width:3; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="titlebar">
+    <h1>📗 Unit 5 · Topic 28 — Analytical Data Modeling</h1>
+    <p>Data Engineering Exam Prep · click the small <b>▸</b> arrow on any topic to learn more</p>
+  </div>
+
+  <div class="toolbar">
+    <button id="palBtn" title="Change colours">🎨 <span id="palName">Bauhaus</span></button>
+    <button id="zoomOut">−</button>
+    <button id="zoomIn">+</button>
+    <button id="fitBtn">⤢ Fit</button>
+    <button id="fsBtn">⛶ Fullscreen</button>
+    <button id="saveBtn">💾 Save</button>
+    <button id="mdBtn">⬇ .md</button>
+  </div>
+
+  <div class="tooltip" id="tooltip"></div>
+  <div class="hint">Drag empty space to pan · scroll to zoom · click a pill to collapse/expand · click ▸ for description + real-life example</div>
+
+  <svg id="map" xmlns="http://www.w3.org/2000/svg">
+    <rect id="bg" x="-5000" y="-5000" width="10000" height="10000" fill="#f4f6f9"/>
+    <g id="viewport"></g>
+  </svg>
+</div>
+
+<script>
+/* ============================ MIND MAP DATA ============================ */
+const mindmapData = {
+  central: "Analytical Data Modeling",
+  branches: [
+    {
+      label: "🎯 Operational vs Analytical",
+      group: 0,
+      desc: "Operational modeling runs applications; analytical modeling is built for querying and analyzing data.",
+      example: "Operational: 'place this order'. Analytical: 'total revenue by product, city and month'.",
+      children: [
+        { label: "Operational",
+          desc: "Day-to-day transactions with frequent INSERT, UPDATE and DELETE.",
+          example: "A customer places an order; payment is processed." },
+        { label: "Analytical",
+          desc: "Answers business questions using a warehouse fed by a data pipeline.",
+          example: "'Total sales last month?' or 'Which region sells most?'" },
+        { label: "Workload decides",
+          desc: "The design depends on whether the system runs the business or analyzes it.",
+          example: "Different goals → different models." },
+      ],
+    },
+    {
+      label: "🧱 Fact & Dimension",
+      group: 0,
+      desc: "A fact table stores measurable events; dimension tables store descriptive context.",
+      example: "Sales_Fact with amounts + Product/Customer/Date dimensions.",
+      children: [
+        { label: "Fact table",
+          desc: "Stores measurable business events or metrics.",
+          example: "quantity, sales_amount, discount, profit." },
+        { label: "Dimension table",
+          desc: "Stores descriptive information used to analyze the facts.",
+          example: "Customer, Product, Location, Date." },
+        { label: "E-commerce example",
+          desc: "Sales_Fact holds measures; Product_Dim, Customer_Dim and Date_Dim hold descriptions.",
+          example: "Joining them answers business questions." },
+      ],
+    },
+    {
+      label: "⭐ Star Schema",
+      group: 1,
+      desc: "One central fact table surrounded by dimension tables — shaped like a star.",
+      example: "Sales_Fact in the center with Date, Customer, Product and Location around it.",
+      children: [
+        { label: "Structure",
+          desc: "A central fact table with multiple dimension tables connected to it.",
+          example: "Dimensions are the star's points." },
+        { label: "Why 'star'",
+          desc: "The fact is in the center and dimensions surround it like points of a star.",
+          example: "Simple and widely used for analytics." },
+        { label: "Example query",
+          desc: "'Laptops in Gujarat during 2026' → join dimensions, SUM(sales_amount).",
+          example: "Product=Laptop, Location=Gujarat, Date=2026." },
+      ],
+    },
+    {
+      label: "❄️ Snowflake & Comparison",
+      group: 1,
+      desc: "A snowflake schema normalizes dimensions further, creating more tables and joins.",
+      example: "Product_Dim → Category_Dim → Department_Dim.",
+      children: [
+        { label: "Snowflake schema",
+          desc: "Dimensions are split into related tables (more normalized).",
+          example: "Product → Category → Department." },
+        { label: "Star vs Snowflake",
+          desc: "Star: fewer joins, more redundancy, simpler, often faster. Snowflake: more joins, less redundancy.",
+          example: "Simplicity vs normalization." },
+        { label: "Memory trick",
+          desc: "Star = Simple; Snowflake = More normalized.",
+          example: "Two lines to recall the difference." },
+      ],
+    },
+    {
+      label: "📊 Measures & Dimensions",
+      group: 2,
+      desc: "Measures are numbers you aggregate; dimensions are categories used to slice them.",
+      example: "SUM(sales) by product and month.",
+      children: [
+        { label: "Measures",
+          desc: "Numeric values that can be aggregated: SUM, AVG, COUNT, MIN, MAX.",
+          example: "sales_amount, quantity, profit." },
+        { label: "Dimensions",
+          desc: "Categories/descriptions used to slice and analyze measures.",
+          example: "Product, Customer, City, Date, Category." },
+        { label: "Golden rule ⭐",
+          desc: "Fact = what happened / what we measure; Dimension = who, what, when, where.",
+          example: "Sales = fact; Customer/Product/Date/Location = dimensions." },
+      ],
+    },
+    {
+      label: "🧪 Scenario & Exam",
+      group: 2,
+      desc: "Classic 6-question warehouse scenario on facts, dimensions and schemas.",
+      example: "Total sales by product category, customer city and month.",
+      children: [
+        { label: "Where measures go",
+          desc: "sales_amount, quantity and discount belong in Sales_Fact.",
+          example: "The fact table holds metrics." },
+        { label: "Where descriptions go",
+          desc: "Product category, customer city and month live in dimension tables.",
+          example: "Product_Dim, Customer_Dim, Date_Dim." },
+        { label: "Sales_Fact type",
+          desc: "It is a fact table.",
+          example: "Name it correctly." },
+        { label: "Schema question",
+          desc: "One central fact surrounded by dimensions = Star schema.",
+          example: "Answer 'star'." },
+        { label: "Normalized dimensions",
+          desc: "Further normalized dimensions → Snowflake schema.",
+          example: "Answer 'snowflake'." },
+        { label: "Measure vs dimension",
+          desc: "Measure = aggregatable number; dimension = descriptive category for slicing.",
+          example: "State the difference clearly." },
+      ],
+    },
+  ],
+};
+
+/* ===================== MANDATORY GEOMETRY FUNCTIONS ===================== */
+function getPill(label, depth) {
+  var fs = depth === 0 ? 17 : depth === 1 ? 14 : 12;
+  var pad = depth === 0 ? 34 : depth === 1 ? 22 : 18;
+  return {
+    w: Math.max(label.length * fs * 0.62 + pad * 2, 90),
+    h: depth === 0 ? 50 : depth === 1 ? 38 : 32,
+  };
+}
+function edgePoint(cx, cy, hw, hh, tx, ty) {
+  var dx = tx - cx, dy = ty - cy;
+  var dist = Math.sqrt(dx * dx + dy * dy);
+  if (dist < 0.01) return { x: cx + hw, y: cy };
+  var nx = dx / dist, ny = dy / dist;
+  var t = 1.0 / Math.sqrt((nx * nx) / (hw * hw) + (ny * ny) / (hh * hh));
+  return { x: cx + nx * t, y: cy + ny * t };
+}
+function buildCurve(ax, ay, aLabel, aDepth, bx, by, bLabel, bDepth) {
+  var pa = getPill(aLabel, aDepth), pb = getPill(bLabel, bDepth);
+  var s = edgePoint(ax, ay, pa.w / 2, pa.h / 2, bx, by);
+  var e = edgePoint(bx, by, pb.w / 2, pb.h / 2, ax, ay);
+  var qx = (s.x + e.x) / 2 + (s.y - e.y) * 0.18;
+  var qy = (s.y + e.y) / 2 + (e.x - s.x) * 0.18;
+  return "M " + s.x + " " + s.y + " Q " + qx + " " + qy + " " + e.x + " " + e.y;
+}
+
+/* ============================== PALETTES =============================== */
+const PALETTES = {
+  Bauhaus: ["#D64045","#1D3557","#E9B44C","#2D6A4F","#7B2D8E","#E07A5F","#457B9D"],
+  "Ocean Sunset": ["#E76F51","#2A9D8F","#E9C46A","#264653","#F4A261","#287271","#BC4749"],
+  "Nordic Forest": ["#5B8C5A","#4A6FA5","#C17C74","#7B6D8D","#D4A574","#4D8B8B","#8B6F47"],
+  "Pastel Garden": ["#7EB8DA","#B5C99A","#E8A87C","#9B8EC1","#F2CC8F","#81B29A","#E07A5F"],
+};
+let palName = "Bauhaus";
+
+/* ============================== LAYOUT ================================= */
+function buildLayout(data) {
+  var nodes = [], edges = [], cx = 600, cy = 450;
+  nodes.push({ id: "root", label: data.central, x: cx, y: cy, depth: 0,
+    childIds: [], collapsed: false, bi: -1, desc: null, example: null, detail: null });
+  var branches = data.branches || [];
+  var sorted = branches.map(function(b, i) { return Object.assign({}, b, { oi: i }); });
+  sorted.sort(function(a, b) { return (a.group || 0) - (b.group || 0); });
+  var groups = [], lastG = null;
+  sorted.forEach(function(b, i) { if ((b.group || 0) !== lastG) { groups.push(i); lastG = (b.group || 0); } });
+  var gapExtra = 0.14, totalGap = Math.max(0, groups.length - 1) * gapExtra;
+  var baseStep = (2 * Math.PI - totalGap) / sorted.length;
+  var angle = -Math.PI / 2;
+  sorted.forEach(function(branch, i) {
+    if (i > 0 && groups.indexOf(i) !== -1) angle += gapExtra;
+    var bAngle = angle + (i * 0.05 - 0.08);
+    var bx = cx + Math.cos(bAngle) * 300, by = cy + Math.sin(bAngle) * 300;
+    var bId = "b-" + branch.oi;
+    nodes.push({ id: bId, label: branch.label, x: bx, y: by, depth: 1,
+      childIds: [], collapsed: false, bi: branch.oi,
+      desc: branch.desc || null, example: branch.example || null, detail: branch.desc || null });
+    nodes[0].childIds.push(bId);
+    edges.push({ from: "root", to: bId, bi: branch.oi, depth: 1 });
+    var kids = branch.children || [];
+    kids.forEach(function(child, j) {
+      var cc = kids.length, spread = Math.PI * (cc > 4 ? 0.65 : 0.5);
+      var sa = bAngle - spread / 2;
+      var ca = cc === 1 ? bAngle : sa + (j / (cc - 1)) * spread;
+      var sx = bx + Math.cos(ca) * 185, sy = by + Math.sin(ca) * 185;
+      var cId = "s-" + branch.oi + "-" + j;
+      nodes.push({ id: cId, label: child.label, x: sx, y: sy, depth: 2,
+        childIds: [], collapsed: false, bi: branch.oi,
+        desc: child.desc || null, example: child.example || null, detail: child.desc || null });
+      nodes.find(function(n) { return n.id === bId; }).childIds.push(cId);
+      edges.push({ from: bId, to: cId, bi: branch.oi, depth: 2 });
+    });
+    angle += baseStep;
+  });
+  return { nodes: nodes, edges: edges };
+}
+
+/* =============================== STATE ================================= */
+let layout = buildLayout(mindmapData);
+let nodesMap = new Map(layout.nodes.map(n => [n.id, n]));
+let openInfo = new Set();
+let collapsed = new Set();
+let tx = 0, ty = 0, k = 1;
+let dragging = false, dragX = 0, dragY = 0;
+
+const svg = document.getElementById("map");
+const viewport = document.getElementById("viewport");
+const tooltip = document.getElementById("tooltip");
+const palette = () => PALETTES[palName];
+const colorFor = (bi) => palette()[((bi % palette().length) + palette().length) % palette().length];
+
+/* ============================== RENDER ================================= */
+function render() {
+  const pal = palette();
+  let parts = [];
+
+  layout.edges.forEach(function(edge) {
+    if (collapsed.has(edge.from)) return;
+    var fromN = nodesMap.get(edge.from), toN = nodesMap.get(edge.to);
+    if (!fromN || !toN) return;
+    var d = buildCurve(fromN.x, fromN.y, fromN.label, fromN.depth,
+                       toN.x, toN.y, toN.label, toN.depth);
+    var color = edge.depth === 1 ? colorFor(edge.bi) : pal[edge.bi % pal.length];
+    parts.push('<path d="' + d + '" fill="none" stroke="' + color + '" stroke-width="' +
+      (edge.depth === 1 ? 2.6 : 1.6) + '" stroke-opacity="' +
+      (edge.depth === 1 ? 0.5 : 0.28) + '" stroke-linecap="round"/>');
+  });
+
+  layout.nodes.forEach(function(node) {
+    if (node.depth === 2 && collapsed.has("b-" + node.bi)) return;
+    var pill = getPill(node.label, node.depth), w = pill.w, h = pill.h;
+    var isRoot = node.depth === 0;
+    var bg = isRoot ? "#1D3557" : colorFor(node.bi);
+    var fg = "#ffffff";
+    var fs = isRoot ? 17 : node.depth === 1 ? 14 : 12;
+    var fw = node.depth === 2 ? 600 : 800;
+    var arrowX = w / 2 + 15;
+    var hasInfo = !!(node.desc || node.example);
+    var toggle = collapsed.has(node.id) ? "+" : (node.depth === 1 ? "−" : "");
+    parts.push('<g transform="translate(' + node.x + ',' + node.y + ')">' +
+      '<g class="node-pill" data-id="' + node.id + '" style="cursor:pointer">' +
+        '<rect x="' + (-w/2) + '" y="' + (-h/2) + '" width="' + w + '" height="' + h +
+          '" rx="' + (isRoot ? 13 : 19) + '" fill="' + bg + '" fill-opacity="1" ' +
+          'stroke="rgba(0,0,0,.12)" stroke-width="1"/>' +
+        '<text text-anchor="middle" dy="0.35em" font-size="' + fs + '" font-weight="' + fw +
+          '" fill="' + fg + '" style="font-family:system-ui,sans-serif;pointer-events:none">' +
+          escapeXml(node.label) + '</text>' +
+      '</g>' +
+      (toggle ? '<g class="collapse-dot" data-id="' + node.id + '" style="cursor:pointer">' +
+        '<circle cx="' + (-w/2 - 13) + '" cy="0" r="10" fill="#fff" stroke="#c8ced9"/>' +
+        '<text x="' + (-w/2 - 13) + '" y="0" text-anchor="middle" dy="0.35em" font-size="13" ' +
+        'font-weight="800" fill="#556" style="pointer-events:none">' + toggle + '</text></g>' : '') +
+      (hasInfo ?
+        '<g class="arrow-hit" data-id="' + node.id + '">' +
+          '<circle cx="' + arrowX + '" cy="0" r="10" fill="#fff" stroke="' + bg + '" stroke-width="2"/>' +
+          '<path d="M ' + (arrowX - 3) + ' -4 L ' + (arrowX + 3) + ' 0 L ' + (arrowX - 3) + ' 4 Z" ' +
+            'fill="' + bg + '" style="pointer-events:none" transform="' +
+            (openInfo.has(node.id) ? 'rotate(90 ' + arrowX + ' 0)' : '') + '"/>' +
+        '</g>' : '') +
+      '</g>');
+  });
+
+  layout.nodes.forEach(function(node) {
+    if (!openInfo.has(node.id)) return;
+    if (node.depth === 2 && collapsed.has("b-" + node.bi)) return;
+    var pill = getPill(node.label, node.depth);
+    var ix = node.x - 140, iy = node.y + pill.h / 2 + 10;
+    var html = '<div xmlns="http://www.w3.org/1999/xhtml" class="info-card">' +
+      '<div class="t">' + escapeXml(node.label) + '</div>' +
+      (node.desc ? '<div class="lbl">💡 In short</div><div>' + escapeXml(node.desc) + '</div>' : '') +
+      (node.example ? '<div class="lbl">🏠 Real-life example</div><div class="ex">' + escapeXml(node.example) + '</div>' : '') +
+      '</div>';
+    parts.push('<foreignObject x="' + ix + '" y="' + iy + '" width="280" height="180">' + html + '</foreignObject>');
+  });
+
+  viewport.innerHTML = parts.join("");
+  viewport.setAttribute("transform", "translate(" + tx + "," + ty + ") scale(" + k + ")");
+  bindNodeEvents();
+}
+function escapeXml(s) {
+  return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function bindNodeEvents() {
+  viewport.querySelectorAll(".arrow-hit").forEach(function(el) {
+    el.addEventListener("click", function(e) {
+      e.stopPropagation();
+      var id = el.getAttribute("data-id");
+      var wasOpen = openInfo.has(id);
+      // keep only one card open at a time: clicking a new arrow closes the previous one
+      openInfo.clear();
+      if (!wasOpen) openInfo.add(id);
+      render();
+    });
+  });
+  viewport.querySelectorAll(".collapse-dot").forEach(function(el) {
+    el.addEventListener("click", function(e) {
+      e.stopPropagation();
+      var id = el.getAttribute("data-id");
+      collapsed.has(id) ? collapsed.delete(id) : collapsed.add(id);
+      render();
+    });
+  });
+  viewport.querySelectorAll(".node-pill").forEach(function(el) {
+    el.addEventListener("click", function(e) {
+      e.stopPropagation();
+      var id = el.getAttribute("data-id");
+      var node = nodesMap.get(id);
+      if (node && node.depth === 1) { collapsed.has(id) ? collapsed.delete(id) : collapsed.add(id); render(); }
+    });
+    el.addEventListener("mouseenter", function() {
+      var node = nodesMap.get(el.getAttribute("data-id"));
+      if (node && node.detail) { tooltip.textContent = node.detail; tooltip.style.display = "block"; }
+    });
+    el.addEventListener("mouseleave", function() { tooltip.style.display = "none"; });
+  });
+}
+
+/* ========================= PAN & ZOOM ================================= */
+svg.addEventListener("mousedown", function(e) {
+  if (e.target.id === "bg") { dragging = true; dragX = e.clientX - tx; dragY = e.clientY - ty; svg.classList.add("dragging"); }
+});
+window.addEventListener("mousemove", function(e) {
+  if (!dragging) return;
+  tx = e.clientX - dragX; ty = e.clientY - dragY;
+  viewport.setAttribute("transform", "translate(" + tx + "," + ty + ") scale(" + k + ")");
+});
+window.addEventListener("mouseup", function() { dragging = false; svg.classList.remove("dragging"); });
+svg.addEventListener("wheel", function(e) {
+  e.preventDefault();
+  k = Math.min(2.5, Math.max(0.35, k * (e.deltaY < 0 ? 1.08 : 0.93)));
+  viewport.setAttribute("transform", "translate(" + tx + "," + ty + ") scale(" + k + ")");
+}, { passive:false });
+document.getElementById("zoomIn").onclick = () => { k = Math.min(2.5, k*1.15); viewport.setAttribute("transform", "translate("+tx+","+ty+") scale("+k+")"); };
+document.getElementById("zoomOut").onclick = () => { k = Math.max(0.35, k/1.15); viewport.setAttribute("transform", "translate("+tx+","+ty+") scale("+k+")"); };
+document.getElementById("fitBtn").onclick = () => { tx=0; ty=0; k=1; viewport.setAttribute("transform","translate(0,0) scale(1)"); };
+
+/* ===================== PALETTE / SAVE / EXPORT ======================== */
+document.getElementById("palBtn").onclick = function() {
+  const keys = Object.keys(PALETTES);
+  palName = keys[(keys.indexOf(palName)+1) % keys.length];
+  document.getElementById("palName").textContent = palName;
+  render();
+};
+document.getElementById("fsBtn").onclick = function() {
+  if (!document.fullscreenElement) document.getElementById("app").requestFullscreen?.();
+  else document.exitFullscreen?.();
+};
+async function handleSave() {
+  var btn = document.getElementById("saveBtn");
+  var slug = mindmapData.central.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,"");
+  var key = "maps:" + slug;
+  var existing = null;
+  try { existing = JSON.parse(localStorage.getItem(key) || "null"); } catch(e){}
+  var now = new Date().toISOString();
+  var record = { data: mindmapData, palette: palName, layout: "radial",
+    createdAt: existing ? existing.createdAt : now, updatedAt: now, tags: [] };
+  try { localStorage.setItem(key, JSON.stringify(record)); btn.textContent = existing ? "Updated ✓" : "Saved ✓"; }
+  catch(e){ btn.textContent = "Error"; }
+  setTimeout(()=>{ btn.textContent = "💾 Save"; }, 1800);
+}
+document.getElementById("saveBtn").onclick = handleSave;
+function toMarkmap(d) {
+  var esc = t => String(t).replace(/([\\`*_\[\]])/g, "\\$1");
+  var out = ["---","title: " + JSON.stringify(d.central),"markmap:","  colorFreezeLevel: 2","  maxWidth: 300","---","","# " + esc(d.central),""];
+  (d.branches||[]).forEach(function(b){
+    out.push("## " + esc(b.label));
+    if (b.desc) out.push("  - " + esc(b.desc));
+    if (b.example) out.push("  - Example: " + esc(b.example));
+    (b.children||[]).forEach(function(c){
+      out.push("- " + esc(c.label));
+      if (c.desc) out.push("  - " + esc(c.desc));
+      if (c.example) out.push("  - Example: " + esc(c.example));
+    });
+    out.push("");
+  });
+  return out.join("\n");
+}
+document.getElementById("mdBtn").onclick = function() {
+  var slug = mindmapData.central.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,"");
+  var url = URL.createObjectURL(new Blob([toMarkmap(mindmapData)], {type:"text/markdown"}));
+  var a = document.createElement("a"); a.href = url; a.download = slug + ".mindmap.md";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),500);
+};
+
+render();
+</script>
+</body>
+</html>

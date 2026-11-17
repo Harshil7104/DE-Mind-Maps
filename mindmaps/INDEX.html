@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>🧠 Mind Map Library — Data Engineering Exam Prep</title>
+<style>
+  :root {
+    --bg:#0f172a; --panel:#16213f; --panel2:#1b2a4a; --line:#2c3e63;
+    --txt:#e8eefc; --muted:#94a6c8; --accent:#6ea8fe;
+    --u1:#ef4444; --u2:#f59e0b; --u3:#10b981; --u4:#3b82f6; --u5:#8b5cf6; --u6:#ec4899;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    background:linear-gradient(160deg,#0b1224 0%,#0f172a 45%,#111c38 100%);
+    color:var(--txt); min-height:100vh; }
+  .wrap { max-width:1180px; margin:0 auto; padding:34px 20px 70px; }
+
+  header { text-align:center; margin-bottom:26px; }
+  header h1 { margin:0 0 8px; font-size:32px; letter-spacing:.3px; }
+  header p { margin:0; color:var(--muted); font-size:14px; }
+  .stats { display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin-top:18px; }
+  .stat { background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    padding:10px 18px; font-size:13px; color:var(--muted); }
+  .stat b { color:var(--txt); font-size:18px; margin-right:6px; }
+
+  .searchbar { position:sticky; top:0; z-index:5; display:flex; justify-content:center;
+    padding:14px 0; background:linear-gradient(#0f172a 70%, rgba(15,23,42,0)); }
+  .searchbar input { width:min(520px,100%); padding:12px 18px; border-radius:12px;
+    border:1px solid var(--line); background:var(--panel); color:var(--txt); font-size:15px; outline:none; }
+  .searchbar input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(110,168,254,.18); }
+  .searchbar input::placeholder { color:var(--muted); }
+
+  h2.section-title { font-size:15px; text-transform:uppercase; letter-spacing:1.2px;
+    color:var(--muted); margin:36px 0 14px; padding-left:4px; }
+
+  .mega-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; }
+  .mega { display:flex; align-items:center; gap:14px; text-decoration:none; color:var(--txt);
+    background:linear-gradient(135deg,var(--panel2),var(--panel));
+    border:1px solid var(--line); border-left:5px solid var(--c); border-radius:14px;
+    padding:16px 18px; transition:transform .15s, border-color .15s, box-shadow .15s; }
+  .mega:hover { transform:translateY(-3px); border-color:var(--c); box-shadow:0 10px 26px rgba(0,0,0,.35); }
+  .mega .num { font-size:26px; font-weight:800; color:var(--c); min-width:42px; text-align:center; }
+  .mega .meta strong { display:block; font-size:15px; }
+  .mega .meta span { font-size:12px; color:var(--muted); }
+
+  .unit { margin-top:26px; border:1px solid var(--line); border-radius:16px;
+    background:rgba(22,33,63,.55); overflow:hidden; }
+  .unit-head { display:flex; align-items:center; gap:10px; padding:14px 18px;
+    background:var(--panel); border-bottom:1px solid var(--line); }
+  .unit-head .dot { width:12px; height:12px; border-radius:50%; background:var(--c); }
+  .unit-head h3 { margin:0; font-size:16px; }
+  .unit-head .count { margin-left:auto; font-size:12px; color:var(--muted); }
+  .topics { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:10px; padding:16px; }
+  .topic { display:flex; align-items:center; gap:11px; text-decoration:none; color:var(--txt);
+    background:var(--panel2); border:1px solid var(--line); border-radius:10px;
+    padding:11px 13px; font-size:13.5px; transition:background .15s, transform .15s; }
+  .topic:hover { background:#22335a; transform:translateX(3px); }
+  .topic .n { font-size:12px; font-weight:800; color:var(--c);
+    background:rgba(255,255,255,.06); padding:4px 8px; border-radius:7px; min-width:34px; text-align:center; }
+  .topic .arrow { margin-left:auto; color:var(--muted); font-size:16px; }
+
+  .hidden { display:none !important; }
+  footer { text-align:center; color:var(--muted); font-size:12px; margin-top:44px; }
+  @media (max-width:640px){ header h1{font-size:24px;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🧠 Mind Map Library</h1>
+    <p>Data Engineering Exam Prep · 6 Units · 40 Topics · Chapter-wise + Unit Mega Maps</p>
+    <div class="stats">
+      <div class="stat"><b>46</b> mind maps</div>
+      <div class="stat"><b>40</b> topic maps</div>
+      <div class="stat"><b>6</b> unit mega maps</div>
+    </div>
+  </header>
+
+  <div class="searchbar">
+    <input id="search" type="text" placeholder="🔍  Type to filter topics or units…" autocomplete="off" />
+  </div>
+
+  <h2 class="section-title">⭐ Unit Mega Maps (deduplicated, whole-unit view)</h2>
+  <div class="mega-grid" id="megaGrid"></div>
+
+  <div id="units"></div>
+
+  <footer>Built for revision · click any card to open its interactive mind map in a new tab</footer>
+</div>
+
+<script>
+const mega = [
+  { n:1, file:"unit-1-mega-mind-map.html", title:"Unit 1 Mega Map", sub:"Data Engineering · topics 1–7", c:"var(--u1)" },
+  { n:2, file:"unit-2-mega-mind-map.html", title:"Unit 2 Mega Map", sub:"Data Architecture & Tech Selection · 8–13", c:"var(--u2)" },
+  { n:3, file:"unit-3-mega-mind-map.html", title:"Unit 3 Mega Map", sub:"Data Generation & Storage · 14–18", c:"var(--u3)" },
+  { n:4, file:"unit-4-mega-mind-map.html", title:"Unit 4 Mega Map", sub:"Data Ingestion · 19–25", c:"var(--u4)" },
+  { n:5, file:"unit-5-mega-mind-map.html", title:"Unit 5 Mega Map", sub:"Queries, Modeling & Transformation · 26–31", c:"var(--u5)" },
+  { n:6, file:"unit-6-mega-mind-map.html", title:"Unit 6 Mega Map", sub:"Serving, Security & Future · 32–40", c:"var(--u6)" },
+];
+
+const units = [
+  { n:1, name:"Unit 1 — Data Engineering", c:"var(--u1)", topics:[
+    [1,"Data Engineering Lifecycle","topic-1-data-engineering-lifecycle.html"],
+    [2,"Data Engineering Skills & Activities","topic-2-data-engineering-skills-and-activities.html"],
+    [3,"Data Engineering Inside an Organization","topic-3-data-engineering-inside-an-organization.html"],
+    [4,"Data Lifecycle vs Data Engineering Lifecycle","topic-4-data-lifecycle-vs-data-engineering-lifecycle.html"],
+    [5,"Data Generation: Source Systems","topic-5-data-generation-source-systems.html"],
+    [6,"Major Undercurrents Across the Lifecycle","topic-6-major-undercurrents.html"],
+    [7,"Principles of Good Data Architecture","topic-7-principles-of-good-data-architecture.html"],
+  ]},
+  { n:2, name:"Unit 2 — Data Architecture & Technology Selection", c:"var(--u2)", topics:[
+    [8,"Data Architecture Concepts","topic-8-data-architecture-concepts.html"],
+    [9,"Types of Data Architectures","topic-9-types-of-data-architectures.html"],
+    [10,"Interoperability, Cost & Business Value","topic-10-interoperability-cost-business-value.html"],
+    [11,"Data Location Strategies","topic-11-data-location-strategies.html"],
+    [12,"Monolith vs Modular Architectures","topic-12-monolith-vs-modular.html"],
+    [13,"Optimization, Performance & Benchmark Wars","topic-13-optimization-performance-benchmark-wars.html"],
+  ]},
+  { n:3, name:"Unit 3 — Data Generation & Storage", c:"var(--u3)", topics:[
+    [14,"Files, APIs & Databases as Data Sources","topic-14-files-apis-databases-data-sources.html"],
+    [15,"Change Data Capture (CDC)","topic-15-change-data-capture.html"],
+    [16,"Logs and Streams","topic-16-logs-and-streams.html"],
+    [17,"Distributed Storage Systems","topic-17-distributed-storage-systems.html"],
+    [18,"File, Block & Object Storage","topic-18-file-block-object-storage.html"],
+  ]},
+  { n:4, name:"Unit 4 — Data Ingestion", c:"var(--u4)", topics:[
+    [19,"Batch vs Streaming Ingestion","topic-19-batch-vs-streaming-ingestion.html"],
+    [20,"ETL vs ELT","topic-20-etl-vs-elt.html"],
+    [21,"Data Migration Techniques","topic-21-data-migration-techniques.html"],
+    [22,"Error Handling in Data Pipelines","topic-22-error-handling-in-data-pipelines.html"],
+    [23,"Schema Evolution","topic-23-schema-evolution.html"],
+    [24,"Message Queues & Event Platforms","topic-24-message-queues-event-platforms.html"],
+    [25,"Late-Arriving Data & Replay","topic-25-late-arriving-data-and-replay.html"],
+  ]},
+  { n:5, name:"Unit 5 — Queries, Modeling & Transformation", c:"var(--u5)", topics:[
+    [26,"Query Processing & Optimization","topic-26-query-processing-and-optimization.html"],
+    [27,"Data Modeling Concepts","topic-27-data-modeling-concepts.html"],
+    [28,"Analytical Data Modeling","topic-28-analytical-data-modeling.html"],
+    [29,"Batch Data Transformations","topic-29-batch-data-transformations.html"],
+    [30,"Streaming Data Transformations","topic-30-streaming-data-transformations.html"],
+    [31,"Query Federation","topic-31-query-federation.html"],
+  ]},
+  { n:6, name:"Unit 6 — Serving, Security & Future Trends", c:"var(--u6)", topics:[
+    [32,"Analytics Data Serving","topic-32-analytics-data-serving.html"],
+    [33,"ML Data Serving","topic-33-ml-data-serving.html"],
+    [34,"Reverse ETL & Data Products","topic-34-reverse-etl-and-data-products.html"],
+    [35,"Data Security Principles","topic-35-data-security-principles.html"],
+    [36,"Encryption and Logging","topic-36-encryption-and-logging.html"],
+    [37,"Future of Data Engineering","topic-37-future-of-data-engineering.html"],
+    [38,"Data Mesh","topic-38-data-mesh.html"],
+    [39,"GDPR and CCPA","topic-39-gdpr-and-ccpa.html"],
+    [40,"Live Data Stack & Streaming Databases","topic-40-live-data-stack.html"],
+  ]},
+];
+
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+// render mega maps
+document.getElementById("megaGrid").innerHTML = mega.map(m =>
+  `<a class="mega" style="--c:${m.c}" href="${m.file}" target="_blank" data-search="${esc((m.title+' '+m.sub).toLowerCase())}">
+     <div class="num">U${m.n}</div>
+     <div class="meta"><strong>${esc(m.title)}</strong><span>${esc(m.sub)}</span></div>
+     <div class="arrow">↗</div>
+   </a>`).join("");
+
+// render each unit
+document.getElementById("units").innerHTML = units.map(u => `
+  <section class="unit" style="--c:${u.c}" data-search="${esc(u.name.toLowerCase())}">
+    <div class="unit-head">
+      <span class="dot"></span>
+      <h3>${esc(u.name)}</h3>
+      <span class="count">${u.topics.length} topics</span>
+    </div>
+    <div class="topics">
+      ${u.topics.map(t => `<a class="topic" href="${t[2]}" target="_blank"
+          data-search="${esc((t[1]+' topic '+t[0]+' '+u.name).toLowerCase())}">
+          <span class="n">${t[0]}</span><span>${esc(t[1])}</span><span class="arrow">↗</span>
+        </a>`).join("")}
+    </div>
+  </section>`).join("");
+
+// live search filter
+const q = document.getElementById("search");
+q.addEventListener("input", function(){
+  const term = this.value.trim().toLowerCase();
+  document.querySelectorAll(".topic, .mega").forEach(el => {
+    el.classList.toggle("hidden", term !== "" && !el.dataset.search.includes(term));
+  });
+  document.querySelectorAll(".unit").forEach(sec => {
+    const anyVisible = [...sec.querySelectorAll(".topic")].some(t => !t.classList.contains("hidden"));
+    sec.classList.toggle("hidden", term !== "" && !anyVisible && !sec.dataset.search.includes(term));
+  });
+});
+</script>
+</body>
+</html>
